@@ -1,6 +1,9 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
 Titanium.UI.setBackgroundColor('#000');
 
+var notify = require('notify');
+var printf = notify.notify;
+
 // create tab group
 var tabGroup = Titanium.UI.createTabGroup();
 //
@@ -87,29 +90,12 @@ var coverArt = Ti.UI.createImageView({
 });
 coverArt.setImage("music.png");
 
-var activityIndicator = Ti.UI.createActivityIndicator({
-  color: 'green',
-  font: {fontFamily:'Helvetica Neue', fontSize:26, fontWeight:'bold'},
-  message: 'Loading...',
-  style:Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
-  top:10,
-  left:10,
-  height:'auto',
-  width:'auto'
-});
-
 if (Ti.Platform.name === 'iPhone OS') {
-    win2.add(activityIndicator);
-}
-
-function printf(msg) {
-  activityIndicator.message = msg + "\n"; 
-  activityIndicator.show();
-    Ti.API.info(msg + "\n");
+    notify.addToWindow(win2);
 }
 
 function pianodDisconnect(msg) {
-    activityIndicator.hide();
+    notify.hide();
 	if(currentStation)
 	   currentStation = null; 
 	if(connected) {
@@ -363,7 +349,7 @@ function newStation(label) {
                 tabGroup.setActiveTab(tab3);
                 setTimeout(function() { updateStatus(false) }, 1000);
         	}
-            activityIndicator.hide();
+            notify.hide();
 	    }
 	});
 	stationRow.add(stationLabel);
@@ -435,13 +421,13 @@ function login(e) {
         	loggedin = 1;
             tabGroup.setActiveTab(tab2);
     	} else {
-           activityIndicator.hide();
+           notify.hide();
     	   return;
 	   }
 	}
 	
 	RepopulateStations();
-    activityIndicator.hide();
+    notify.hide();
     var now_playing = updateStatus(true);
     if(now_playing == 1) {
         tabGroup.setActiveTab(tab3);
@@ -496,7 +482,7 @@ newSetting("Pianod Username", "pianod_username");
 newSetting("Pianod Password", "pianod_password");
 
 win2.add(scrollView);
-activityIndicator.hide();
+notify.hide();
 
 var button = Titanium.UI.createButton({
    title: 'Login to Pianod',
