@@ -4,7 +4,6 @@ var activityIndicator = Ti.UI.createActivityIndicator({
   color: 'green',
   font: {fontFamily:'Helvetica Neue', fontSize:26, fontWeight:'bold'},
   message: 'Loading...',
-  style:Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
   top:10,
   left:10,
   height:'auto',
