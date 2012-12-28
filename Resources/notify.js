@@ -1,3 +1,5 @@
+// My understanding is that this pattern creates a singleton so that any other module that
+// 'require's this module will get the same instance of activityIndicator.
 var activityIndicator = Ti.UI.createActivityIndicator({
   color: 'green',
   font: {fontFamily:'Helvetica Neue', fontSize:26, fontWeight:'bold'},
