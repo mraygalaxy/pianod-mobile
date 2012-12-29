@@ -76,7 +76,6 @@ var max_response = 4000;
 var curr_line = "";
 var debug = 0;
 var stationView = null;
-var stationTop = 0;
 var currentStation = null;
 var song_changed = 0;
 var currentSong = null;
@@ -337,37 +336,28 @@ function updateStatus(check_anyway) {
     return found_song;
 }
 
-function newStation(label) {
+function buildStationRow(label, top, height) {
     var stationLabel = Ti.UI.createLabel({
         shadowColor : '#aaa',
-        shadowOffset : {
-            x : 5,
-            y : 5
-        },
+        shadowOffset : { x : 5, y : 5 },
         left : 20,
         text : label,
         textAlign : Ti.UI.TEXT_ALIGNMENT_CENTER,
     });
-
+    
     var stationRow = Titanium.UI.createView({
-        top : stationTop,
-        height : 70
+        top : top,
+        height : height
     });
+    
     stationRow.addEventListener("click", function(e) {
-        if (stations.length == 0) {
-            alert("Empty playlist. Please add some stations =)");
-            return;
-        }
         if (SendPianodRequest(200, "select station \"" + label + "\"")) {
-            if (currentStation) {
-                if (!SendPianodRequest(200, "skip"))
-                    ;
-                return;
-            }
+            if (currentStation)
+                if (!SendPianodRequest(200, "skip")) return;
+            
             currentStation = label;
             printf("Loading...");
             if (SendPianodRequest(200, "play")) {
-
                 tabGroup.setActiveTab(tab3);
                 setTimeout(function() {
                     updateStatus(false)
@@ -376,43 +366,47 @@ function newStation(label) {
             notify.hide();
         }
     });
+    
     stationRow.add(stationLabel);
-    stationView.add(stationRow);
-    stationTop += 70;
+    return stationRow;
+}
+
+function clearStationView() {
+    if (stationView) {
+        win1.remove(stationView);
+        stationView = null;
+    }
+}
+
+var stationRowHeight = 70;
+function buildStationView(stations) {
+    var stationView = Ti.UI.createScrollView();
+    for (var i = 0, top = 0; i < stations.length; i++, top += stationRowHeight)
+        stationView.add(buildStationRow(stations[i], top, stationRowHeight));
+    return stationView;
 }
 
 function RepopulateStations() {
     printf("Retrieving station list...");
-    stationTop = 0;
-    if (stationView) {
-        win1.remove(stationView);
-        stationView = null;
-    }
-    stationView = Ti.UI.createScrollView();
-    stations = null;    stations = [];
-
+    stations = [];
     if (SendPianodRequest(204, "stations list")) {
         if (back().code == 204) {
             while (response.length > 0) {
                 r = response.shift();
-                if (r.code != 115)
-                    continue;
+                if (r.code != 115) continue;
                 s = r.value.substr(9);
-                //printf("Adding station: " + s);
                 stations.push(s);
-                newStation(s);
             }
         }
     }
+    clearStationView();
+    stationView = buildStationView(stations)
     win1.add(stationView);
 }
 
 function login(e) {
-    if (stationView) {
-        win1.remove(stationView);
-        stationView = null;
-    }
-
+    clearStationView();
+    
     if (!connected()) {
         printf("Connecting...");
         reconnect();
@@ -454,12 +448,8 @@ function login(e) {
 
     RepopulateStations();
     notify.hide();
-    var now_playing = updateStatus(true);
-    if (now_playing == 1) {
-        tabGroup.setActiveTab(tab3);
-    } else {
-        tabGroup.setActiveTab(tab1);
-    }
+    if (updateStatus(true)) tabGroup.setActiveTab(tab3);
+    else                    tabGroup.setActiveTab(tab1);
 }
 
 /* Populate the UI for the Pianod settings */
